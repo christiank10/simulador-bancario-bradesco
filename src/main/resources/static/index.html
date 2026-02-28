@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Bradesco AI | Plataforma de Engenharia</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bradesco-red: #cc092f; --bg-gray: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-gray); margin: 0; }
+        header { background: var(--bradesco-red); color: white; padding: 1.5rem; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #eee; }
+        .btn-audit { background: var(--bradesco-red); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-audit:hover { opacity: 0.8; }
+        #logIA { margin-top: 20px; padding: 15px; border-left: 5px solid var(--bradesco-red); background: #fff5f6; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Bradesco AI Engine 🤖</h1>
+    <p>Monitoramento de Plataforma em Tempo Real</p>
+</header>
+
+<div class="dashboard">
+    <div class="card">
+        <h3>🏦 Contas Ativas</h3>
+        <table id="tabelaContas">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titular</th>
+                    <th>Saldo</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>📊 Saúde Financeira (IA)</h3>
+        <canvas id="meuGrafico"></canvas>
+        <div id="logIA">Aguardando comando do Agente...</div>
+    </div>
+</div>
+
+<script>
+    // 1. Carregar Dados da sua API
+    async function carregarDados() {
+        const response = await fetch('/api/contas');
+        const contas = await response.json();
+        const tabela = document.querySelector('#tabelaContas tbody');
+        
+        tabela.innerHTML = '';
+        contas.forEach(c => {
+            tabela.innerHTML += `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.titular}</td>
+                    <td>R$ ${c.saldo.toFixed(2)}</td>
+                    <td><button class="btn-audit" onclick="rodarIA(${c.id})">Auditar</button></td>
+                </tr>
+            `;
+        });
+        renderizarGrafico(contas);
+    }
+
+    // 2. Chamar o Agente de IA que você criou no Java
+    async function rodarIA(id) {
+        const res = await fetch(`/api/contas/${id}/auditoria`);
+        const texto = await res.text();
+        document.getElementById('logIA').innerText = texto;
+    }
+
+    // 3. Gerar Gráfico de Performance
+    function renderizarGrafico(contas) {
+        const ctx = document.getElementById('meuGrafico').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: contas.map(c => c.titular),
+                datasets: [{
+                    label: 'Saldo Disponível',
+                    data: contas.map(c => c.saldo),
+                    backgroundColor: '#cc092f'
+                }]
+            }
+        });
+    }
+
+    carregarDados();
+</script>
+
+</body>
+</html>
